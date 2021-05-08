@@ -2,7 +2,7 @@ package com.test.backend.model;
 
 public class Header {
 
-	private String appKey;
+    private String appKey;
     private Long timeStamp;
     private String hashed;
     
