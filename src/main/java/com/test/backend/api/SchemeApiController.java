@@ -46,7 +46,7 @@ public class SchemeApiController {
 
 		} else {
 
-			Boolean success = false;
+			Boolean bool = false;
 			CardVerificationDTO cardVerificationDTO = cardVerificationMapper.cardVerification(pan);
 			String myAuthorization = "3line" + " " + hashSHA512.getHashSHA512(appKey + timeStamp);
 
@@ -60,9 +60,9 @@ public class SchemeApiController {
 
 			} else if (cardVerificationDTO != null) {
 
-				success = true;
+				bool = true;
 
-				map.put("success", success);
+				map.put("success", bool);
 				map.put("payload", cardVerificationDTO);
 
 			}
@@ -91,14 +91,14 @@ public class SchemeApiController {
 
 		} else {
 			
-			Boolean success = false;
+			Boolean bool = false;
 			String myAuthorization = "3line" + " " + hashSHA512.getHashSHA512(appKey + timeStamp);
 
 			if (!myAuthorization.equals(authorization)) {
 
 				map.put("message", "invalid authorization key");
 
-			} else if (validation.validateInput(start).equals(false) || validation.validateInput(limit).equals(false)) {
+			} else if (validation.validateInput(start).equals(bool) || validation.validateInput(limit).equals(bool)) {
 
 				map.put("message", "invalid start or limit value");
 
@@ -112,7 +112,7 @@ public class SchemeApiController {
 
 				success = true;
 
-				map.put("success", success);
+				map.put("success", bool);
 				map.put("start", start);
 				map.put("limit", limit);
 				map.put("size", limit);
