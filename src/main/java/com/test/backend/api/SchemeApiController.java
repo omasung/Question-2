@@ -110,7 +110,7 @@ public class SchemeApiController {
 
 				Map<String, Integer> mapHitCount = hitCountMapper.hitCount(Integer.parseInt(start), Integer.parseInt(limit));
 
-				success = true;
+				bool = true;
 
 				map.put("success", bool);
 				map.put("start", start);
