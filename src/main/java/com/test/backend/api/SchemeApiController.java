@@ -48,7 +48,6 @@ public class SchemeApiController {
 
 			Boolean success = false;
 			CardVerificationDTO cardVerificationDTO = cardVerificationMapper.cardVerification(pan);
-
 			String myAuthorization = "3line" + " " + hashSHA512.getHashSHA512(appKey + timeStamp);
 
 			if (!myAuthorization.equals(authorization)) {
@@ -79,8 +78,6 @@ public class SchemeApiController {
 
 		Map<String, Object> map = new HashMap<String, Object>();
 
-		Boolean success = false;
-
 		String appKey = request.getHeader("appKey");
 		String timeStamp = request.getHeader("timeStamp");
 		String authorization = request.getHeader("authorization");
@@ -93,7 +90,8 @@ public class SchemeApiController {
 			map.put("message", "invalid message request");
 
 		} else {
-
+			
+			Boolean success = false;
 			String myAuthorization = "3line" + " " + hashSHA512.getHashSHA512(appKey + timeStamp);
 
 			if (!myAuthorization.equals(authorization)) {
