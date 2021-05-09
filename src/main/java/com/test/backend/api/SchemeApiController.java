@@ -16,7 +16,7 @@ import com.test.backend.dao.SchemeDAO;
 import com.test.backend.dto.CardVerificationDTO;
 import com.test.backend.mapper.CardVerificationMapper;
 import com.test.backend.mapper.HitCountMapper;
-import com.test.backend.test.SchemTestDriver;
+import com.test.backend.test.SchemeTestDriver;
 import com.test.backend.utility.HashSHA512;
 import com.test.backend.utility.Validation;
 
@@ -27,7 +27,7 @@ public class SchemeApiController {
 	@Autowired private CardVerificationMapper cardVerificationMapper;
 	@Autowired private HitCountMapper hitCountMapper;
 	@Autowired private SchemeDAO schemeDAO;
-	@Autowired private SchemTestDriver schemTestDriver;
+	@Autowired private SchemeTestDriver schemeTestDriver;
 	@Autowired private HashSHA512 hashSHA512;
 	@Autowired private Validation validation;
 
@@ -35,32 +35,40 @@ public class SchemeApiController {
 	public @ResponseBody Map<String, Object> schemeVerificationApi(@PathVariable String pan, HttpServletRequest request) {
 
 		Map<String, Object> map = new HashMap<String, Object>();
-		
+
 		String appKey = request.getHeader("appKey");
 		String timeStamp = request.getHeader("timeStamp");
-		String hashed = request.getHeader("hashed");
+		String authorization = request.getHeader("authorization");
 
-		Boolean success = false;
-		CardVerificationDTO cardVerificationDTO = cardVerificationMapper.cardVerification(pan);
-		
-		if (appKey == null || timeStamp == null || !hashSHA512.getHashSHA512(appKey + timeStamp).equals(hashed)) {
+		if (appKey == null || timeStamp == null || authorization == null) {
 
-			map.put("success", success);
 			map.put("message", "invalid message request");
-			
-		} else if (cardVerificationDTO == null) {
 
-			map.put("success", success);
-			map.put("message", "card details not found");
+		} else {
 
-		} else if (cardVerificationDTO != null) {
-			
-			success = true;
+			Boolean success = false;
+			CardVerificationDTO cardVerificationDTO = cardVerificationMapper.cardVerification(pan);
 
-			map.put("success", success);
-			map.put("payload", cardVerificationDTO);
-			
-		}	
+			String myAuthorization = "3line" + " " + hashSHA512.getHashSHA512(appKey + timeStamp);
+
+			if (!myAuthorization.equals(authorization)) {
+
+				map.put("message", "invalid authorization key");
+
+			} else if (cardVerificationDTO == null) {
+
+				map.put("message", "card details not found");
+
+			} else if (cardVerificationDTO != null) {
+
+				success = true;
+
+				map.put("success", success);
+				map.put("payload", cardVerificationDTO);
+
+			}
+
+		}
 
 		return map;
 
@@ -72,58 +80,64 @@ public class SchemeApiController {
 		Map<String, Object> map = new HashMap<String, Object>();
 
 		Boolean success = false;
-		
+
 		String appKey = request.getHeader("appKey");
 		String timeStamp = request.getHeader("timeStamp");
-		String hashed = request.getHeader("hashed");
-		
+		String authorization = request.getHeader("authorization");
+
 		String start = request.getParameter("start");
 		String limit = request.getParameter("limit");
 
-		if (appKey == null || timeStamp == null || !hashSHA512.getHashSHA512(appKey + timeStamp).equals(hashed)) {
+		if (appKey == null || timeStamp == null || authorization == null) {
 
-			map.put("success", success);
 			map.put("message", "invalid message request");
-			
-		} else if (validation.validateInput(start).equals(false) || validation.validateInput(limit).equals(false)) {
-			
-			map.put("success", success);
-			map.put("message", "your start or limit input is invalid");
-			
-		} else if (Integer.parseInt(limit) > schemeDAO.schemeSize()) {
-
-			map.put("success", success);
-			map.put("message", "your input is out of range");
 
 		} else {
 
-			Map<String, Integer> mapHitCount = hitCountMapper.hitCount(Integer.parseInt(start), Integer.parseInt(limit));
+			String myAuthorization = "3line" + " " + hashSHA512.getHashSHA512(appKey + timeStamp);
 
-			success = true;
+			if (!myAuthorization.equals(authorization)) {
 
-			map.put("success", success);
-			map.put("start", start);
-			map.put("limit", limit);
-			map.put("size", limit);
-			map.put("payload", mapHitCount);
+				map.put("message", "invalid authorization key");
+
+			} else if (validation.validateInput(start).equals(false) || validation.validateInput(limit).equals(false)) {
+
+				map.put("message", "invalid start or limit value");
+
+			} else if (Integer.parseInt(limit) > schemeDAO.schemeSize()) {
+
+				map.put("message", "start or limit value is out of range");
+
+			} else {
+
+				Map<String, Integer> mapHitCount = hitCountMapper.hitCount(Integer.parseInt(start), Integer.parseInt(limit));
+
+				success = true;
+
+				map.put("success", success);
+				map.put("start", start);
+				map.put("limit", limit);
+				map.put("size", limit);
+				map.put("payload", mapHitCount);
+
+			}
 
 		}
 
 		return map;
 
 	}
-	
+
 	@RequestMapping(value = "/test/driver", method = { RequestMethod.GET }, produces = "application/json")
 	public @ResponseBody Map<String, Object> schemeVerificationApi() {
 
 		Map<String, Object> map = new HashMap<String, Object>();
 
-		
-		schemTestDriver.testApiTestVerifyCard();
-		schemTestDriver.testApiTestHitCount();
+		schemeTestDriver.testApiTestVerifyCard();
+		schemeTestDriver.testApiTestHitCount();
 
 		return map;
 
-	}	
+	}
 
 }
